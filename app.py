@@ -6,7 +6,7 @@ from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
 
 # ==============================================================================
-# CONFIGURACIÓN DE PÁGINA Y ESTILOS CORPORATIVOS
+# CONFIGURACIÓN DE PÁGINA Y ESTILOS CORPORATIVOS (CONTRASTE BLINDADO)
 # ==============================================================================
 st.set_page_config(
     page_title="SERGEM | Gestión Dinámica y Prefacturación Cañaveral",
@@ -18,36 +18,45 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-    /* Fondo y tipografía general */
+    /* Forzar paleta clara legible independientemente del navegador */
     .stApp {
-        background-color: #F4F7FA;
+        background-color: #F4F7FA !important;
+        color: #1A202C !important;
+    }
+    section[data-testid="stSidebar"] {
+        background-color: #FFFFFF !important;
+        border-right: 1px solid #E2E8F0 !important;
+    }
+    section[data-testid="stSidebar"] * {
+        color: #1A202C !important;
+    }
+    h1, h2, h3, h4, p, label, .stMarkdown, .stCaption {
+        color: #1A202C !important;
     }
     /* Encabezado ejecutivo */
     .main-banner {
         background: linear-gradient(135deg, #0F2942 0%, #1E4E79 100%);
-        padding: 1.4rem 1.8rem;
+        padding: 1.35rem 1.75rem;
         border-radius: 12px;
-        color: white;
         margin-bottom: 1.2rem;
         box-shadow: 0 4px 12px rgba(15, 41, 66, 0.15);
     }
     .main-banner h1 {
-        margin: 0;
-        font-size: 1.55rem;
-        font-weight: 700;
-        letter-spacing: -0.3px;
-        color: #FFFFFF;
+        margin: 0 !important;
+        font-size: 1.5rem !important;
+        font-weight: 700 !important;
+        color: #FFFFFF !important;
     }
     .main-banner p {
-        margin: 0.35rem 0 0 0;
-        font-size: 0.92rem;
-        color: #D9E6F2;
+        margin: 0.35rem 0 0 0 !important;
+        font-size: 0.92rem !important;
+        color: #E2E8F0 !important;
     }
     .badge-pill {
         display: inline-block;
         background-color: rgba(255, 255, 255, 0.16);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        color: #FFFFFF;
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        color: #FFFFFF !important;
         padding: 3px 10px;
         border-radius: 20px;
         font-size: 0.78rem;
@@ -55,21 +64,33 @@ st.markdown(
         margin-right: 6px;
         margin-top: 8px;
     }
+    /* Barra indicadora de rol activo */
+    .role-strip {
+        background-color: #EBF8FF;
+        border-left: 4px solid #2B6CB0;
+        padding: 0.65rem 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        color: #1A365D !important;
+        font-size: 0.9rem;
+    }
     /* Tarjetas KPI */
     div[data-testid="stMetric"] {
-        background-color: #FFFFFF;
-        border: 1px solid #E2E8F0;
-        border-left: 4px solid #1E4E79;
-        padding: 0.9rem 1.1rem;
-        border-radius: 10px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+        background-color: #FFFFFF !important;
+        border: 1px solid #E2E8F0 !important;
+        border-left: 4px solid #1E4E79 !important;
+        padding: 0.9rem 1.1rem !important;
+        border-radius: 10px !important;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04) !important;
     }
-    div[data-testid="stMetric"] label {
+    div[data-testid="stMetric"] label,
+    div[data-testid="stMetric"] label * {
         color: #4A5568 !important;
         font-weight: 600 !important;
         font-size: 0.85rem !important;
     }
-    div[data-testid="stMetric"] div[data-testid="stMetricValue"] {
+    div[data-testid="stMetric"] div[data-testid="stMetricValue"],
+    div[data-testid="stMetric"] div[data-testid="stMetricValue"] * {
         color: #0F2942 !important;
         font-size: 1.45rem !important;
         font-weight: 700 !important;
@@ -77,7 +98,7 @@ st.markdown(
     /* Pestañas */
     .stTabs [data-baseweb="tab-list"] {
         gap: 8px;
-        background-color: #E2E8F0;
+        background-color: #E2E8F0 !important;
         padding: 6px;
         border-radius: 10px;
     }
@@ -85,10 +106,19 @@ st.markdown(
         border-radius: 8px;
         padding: 8px 16px;
         font-weight: 600;
-        color: #2D3748;
+        background-color: transparent !important;
+    }
+    .stTabs [data-baseweb="tab"] p {
+        color: #2D3748 !important;
     }
     .stTabs [aria-selected="true"] {
         background-color: #0F2942 !important;
+    }
+    .stTabs [aria-selected="true"] p {
+        color: #FFFFFF !important;
+    }
+    /* Botón primario con texto blanco legible */
+    button[kind="primary"] p {
         color: #FFFFFF !important;
     }
     </style>
@@ -335,7 +365,6 @@ def generar_excel_prefactura(df_prefactura: pd.DataFrame, df_diario: pd.DataFram
         wb = writer.book
         ws = wb["Prefactura_Quincenal"]
 
-        # Encabezado institucional en Excel
         ws.merge_cells("A1:P1")
         ws["A1"] = "SERGEM S.A.S. — PREFACTURA DE OPERACIÓN LOGÍSTICA CAÑAVERAL"
         ws["A1"].font = Font(name="Calibri", size=14, bold=True, color="FFFFFF")
@@ -357,7 +386,6 @@ def generar_excel_prefactura(df_prefactura: pd.DataFrame, df_diario: pd.DataFram
             bottom=Side(style="thin", color="CBD5E0"),
         )
 
-        # Formatear encabezados fila 4
         for col_idx in range(1, len(df_prefactura.columns) + 1):
             cell = ws.cell(row=4, column=col_idx)
             cell.font = Font(name="Calibri", size=10, bold=True, color="FFFFFF")
@@ -366,7 +394,6 @@ def generar_excel_prefactura(df_prefactura: pd.DataFrame, df_diario: pd.DataFram
             cell.border = thin_border
         ws.row_dimensions[4].height = 28
 
-        # Formatear filas de datos
         for row_idx in range(5, 5 + len(df_prefactura)):
             estado_val = str(ws.cell(row=row_idx, column=16).value)
             for col_idx in range(1, len(df_prefactura.columns) + 1):
@@ -390,7 +417,6 @@ def generar_excel_prefactura(df_prefactura: pd.DataFrame, df_diario: pd.DataFram
                         cell.fill = PatternFill(start_color="FEFCBF", end_color="FEFCBF", fill_type="solid")
                         cell.font = Font(name="Calibri", size=10, bold=True, color="744210")
 
-        # Fila Total al final
         total_row = 5 + len(df_prefactura)
         ws.cell(row=total_row, column=11, value="TOTAL PREFACTURA:").font = Font(bold=True)
         total_cell = ws.cell(row=total_row, column=12, value=f"=SUM(L5:L{total_row - 1})")
@@ -398,7 +424,6 @@ def generar_excel_prefactura(df_prefactura: pd.DataFrame, df_diario: pd.DataFram
         total_cell.number_format = '"$"#,##0'
         total_cell.fill = PatternFill(start_color="EBF8FF", end_color="EBF8FF", fill_type="solid")
 
-        # Autoajuste de columnas
         for col_idx in range(1, len(df_prefactura.columns) + 1):
             col_letter = get_column_letter(col_idx)
             ws.column_dimensions[col_letter].width = 18
@@ -411,86 +436,45 @@ def generar_excel_prefactura(df_prefactura: pd.DataFrame, df_diario: pd.DataFram
 
 
 # ==============================================================================
-# BARRA LATERAL (PERFIL DE ACCESO Y RESUMEN DE VALOR)
+# FUNCIONES DE RENDERIZADO POR MÓDULO
 # ==============================================================================
-with st.sidebar:
-    st.markdown("### 🏢 SERGEM — Cañaveral")
-    rol_activo = st.radio(
-        "Simular vista de usuario:",
-        [
-            "👩‍💼 Facturación / Gerencia SERGEM",
-            "👨‍💼 Auditoría Cañaveral (Sr. Fabián)",
-            "📱 Supervisor Operativo (Celular)",
-        ],
-    )
-    st.divider()
-    st.markdown("**Ventajas clave del sistema:**")
-    st.success(
-        "✅ **Cero carga para Cañaveral:** No digitan nada; reciben el Excel exacto y revisan glosas."
-    )
-    st.info(
-        "🔄 **Rotación sin listas fijas:** Altas y retiros diarios sin alterar quincenas pasadas."
-    )
-    st.warning(
-        "⚡ **Cierre en 1 clic:** Días separados por comas (1,2,3...) y horas extras decimales."
-    )
-    st.caption("Prototipo funcional desarrollado por **Gestión Logik**")
+def render_kpis():
+    df_totales = st.session_state.prefactura_q1
+    total_presentado = df_totales["Valor Liquidado ($)"].sum()
+    total_autorizado = df_totales[df_totales["Estado"] == "Autorizado"]["Valor Liquidado ($)"].sum()
+    total_revision = df_totales[df_totales["Estado"] != "Autorizado"]["Valor Liquidado ($)"].sum()
+    activos_count = len(st.session_state.personal[st.session_state.personal["Estado"] == "Activo"])
+
+    k1, k2, k3, k4 = st.columns(4)
+    k1.metric("💰 Total Prefactura Quincenal", f"${total_presentado:,.0f}")
+    k2.metric("✅ Autorizado para Facturar", f"${total_autorizado:,.0f}", f"{(total_autorizado/total_presentado)*100:.1f}% aprobado")
+    k3.metric("🔍 En Revisión / Glosas", f"${total_revision:,.0f}", f"{len(df_totales[df_totales['Estado'] != 'Autorizado'])} ítems")
+    k4.metric("👥 Personal Activo Hoy", f"{activos_count} colaboradores", "Sin listas rígidas")
 
 
-# ==============================================================================
-# BANNER PRINCIPAL
-# ==============================================================================
-st.markdown(
-    """
-    <div class="main-banner">
-        <h1>🚚 Plataforma Integral de Prefacturación, Rotación y Auditoría — SERGEM & Cañaveral</h1>
-        <p>Control operativo diario en tiempo real, liquidación automática por sede/vehículo y conciliación quincenal sin reprocesos.</p>
-        <div>
-            <span class="badge-pill">📍 7 Municipios Activos</span>
-            <span class="badge-pill">🏍️ Moto • Camioneta • Chopper</span>
-            <span class="badge-pill">📅 Cortes 01-15 y 16-31</span>
-            <span class="badge-pill">🔒 Trazabilidad de Glosas</span>
-        </div>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
-
-# Contenedor superior para KPIs dinámicos
-kpi_container = st.container()
-
-# ==============================================================================
-# PESTAÑAS PRINCIPALES DE LA APLICACIÓN
-# ==============================================================================
-tab1, tab2, tab3, tab4 = st.tabs(
-    [
-        "📊 1. Prefactura y Control de Glosas",
-        "📱 2. Registro Diario (Vista Celular)",
-        "👥 3. Maestro Dinámico de Personal",
-        "💲 4. Matriz Autónoma de Tarifas",
-    ]
-)
-
-# ------------------------------------------------------------------------------
-# TAB 1: PREFACTURA QUINCENAL Y AUDITORÍA CON CAÑAVERAL
-# ------------------------------------------------------------------------------
-with tab1:
+def render_modulo_prefactura(modo_auditor=False):
     col_f1, col_f2, col_f3 = st.columns([1.2, 1.2, 2])
     with col_f1:
         filtro_sede = st.selectbox(
             "Filtrar por Sede / Municipio:",
             ["Todas las sedes"] + sorted(st.session_state.prefactura_q1["Sede"].unique().tolist()),
+            key=f"sede_pref_{modo_auditor}",
         )
     with col_f2:
         filtro_estado = st.selectbox(
             "Filtrar por Estado de Auditoría:",
             ["Todos", "Autorizado", "Ajustado", "Con Observación", "Pendiente"],
+            key=f"est_pref_{modo_auditor}",
         )
     with col_f3:
-        st.caption(
-            "💡 **Interactivo en vivo:** Edita directamente las columnas **Observación Cañaveral (Fabián)**, "
-            "**Respuesta / Ajuste SERGEM** o cambia el **Estado** a *Autorizado* para ver cómo se actualizan los totales arriba."
-        )
+        if modo_auditor:
+            st.caption(
+                "👨‍💼 **Modo Auditoría Cañaveral:** Registra tus observaciones en la columna azul y cambia el estado a **Autorizado** cuando des visto bueno."
+            )
+        else:
+            st.caption(
+                "💡 **Interactivo en vivo:** Edita las columnas de **Observación Cañaveral**, **Respuesta SERGEM** o cambia el **Estado** a *Autorizado*."
+            )
 
     df_view = st.session_state.prefactura_q1.copy()
     if filtro_sede != "Todas las sedes":
@@ -528,10 +512,9 @@ with tab1:
             "Apoyo Miércoles",
             "Valor Liquidado ($)",
         ],
-        key="editor_prefactura",
+        key=f"editor_prefactura_{modo_auditor}",
     )
 
-    # Sincronizar cambios si no hay filtro activo
     if filtro_sede == "Todas las sedes" and filtro_estado == "Todos":
         st.session_state.prefactura_q1 = edited_df.copy()
 
@@ -548,6 +531,7 @@ with tab1:
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             type="primary",
             use_container_width=True,
+            key=f"dl_btn_{modo_auditor}",
         )
     with col_btn2:
         st.info(
@@ -556,43 +540,37 @@ with tab1:
             "con el respaldo diario para auditoría."
         )
 
-# ------------------------------------------------------------------------------
-# LLENAR KPIs SUPERIORES CON LOS DATOS ACTUALIZADOS EN VIVO
-# ------------------------------------------------------------------------------
-df_totales = st.session_state.prefactura_q1
-total_presentado = df_totales["Valor Liquidado ($)"].sum()
-total_autorizado = df_totales[df_totales["Estado"] == "Autorizado"]["Valor Liquidado ($)"].sum()
-total_revision = df_totales[df_totales["Estado"] != "Autorizado"]["Valor Liquidado ($)"].sum()
-activos_count = len(st.session_state.personal[st.session_state.personal["Estado"] == "Activo"])
 
-with kpi_container:
-    k1, k2, k3, k4 = st.columns(4)
-    k1.metric("💰 Total Prefactura Quincenal", f"${total_presentado:,.0f}")
-    k2.metric("✅ Autorizado para Facturar", f"${total_autorizado:,.0f}", f"{(total_autorizado/total_presentado)*100:.1f}% aprobado")
-    k3.metric("🔍 En Revisión / Glosas", f"${total_revision:,.0f}", f"{len(df_totales[df_totales['Estado'] != 'Autorizado'])} ítems")
-    k4.metric("👥 Personal Activo Hoy", f"{activos_count} colaboradores", "Sin listas rígidas")
-
-# ------------------------------------------------------------------------------
-# TAB 2: REGISTRO DIARIO OPERATIVO (PARA SUPERVISION EN CELULAR O PC)
-# ------------------------------------------------------------------------------
-with tab2:
+def render_modulo_registro_diario(modo_movil=False):
     st.subheader("📱 Reporte Diario de Operación (Menos de 5 minutos al día)")
     st.caption(
         "El supervisor elige la sede y marca novedades del día sobre el personal activo. "
         "Cañaveral no tiene que digitar nada y SERGEM queda con respaldo diario."
     )
 
-    col_form, col_hist = st.columns([1.15, 1.85])
+    if modo_movil:
+        col_form, col_hist = st.columns([1, 1.3])
+    else:
+        col_form, col_hist = st.columns([1.15, 1.85])
 
     with col_form:
         with st.form("form_registro_diario", clear_on_submit=True):
             fecha_reg = st.date_input("Fecha de operación:", value=date(2026, 11, 25))
             activos_df = st.session_state.personal[st.session_state.personal["Estado"] == "Activo"]
+            sede_filtro_movil = st.selectbox(
+                "Filtrar Sede:",
+                ["Todas"] + sorted(activos_df["Sede"].unique().tolist()),
+            )
+            if sede_filtro_movil != "Todas":
+                activos_filtrados = activos_df[activos_df["Sede"] == sede_filtro_movil]
+            else:
+                activos_filtrados = activos_df
+
             mensajero_sel = st.selectbox(
                 "Mensajero Activo:",
-                activos_df["Nombre Completo"].tolist(),
+                activos_filtrados["Nombre Completo"].tolist(),
             )
-            info_msg = activos_df[activos_df["Nombre Completo"] == mensajero_sel].iloc[0]
+            info_msg = activos_filtrados[activos_filtrados["Nombre Completo"] == mensajero_sel].iloc[0]
             st.caption(
                 f"📍 Sede: **{info_msg['Sede']}** | 🚚 Vehículo: **{info_msg['Vehículo']}** | 📋 {info_msg['Vinculación']}"
             )
@@ -632,10 +610,8 @@ with tab2:
         st.markdown("**Últimos registros diarios capturados (Respaldo de Auditoría):**")
         st.dataframe(st.session_state.registros_diarios, use_container_width=True, hide_index=True)
 
-# ------------------------------------------------------------------------------
-# TAB 3: MAESTRO DINÁMICO DE PERSONAL (ALTAS Y RETIROS SIN LISTAS FIJAS)
-# ------------------------------------------------------------------------------
-with tab3:
+
+def render_modulo_personal():
     st.subheader("👥 Gestión Dinámica de Personal (Fijo y Prestación de Servicios)")
     st.caption(
         "Ingresa nuevos colaboradores o liquida retiros con fecha de corte. "
@@ -689,7 +665,7 @@ with tab3:
             with st.form("form_retiro"):
                 persona_ret = st.selectbox("Seleccionar colaborador activo:", activos_lista)
                 fecha_corte_ret = st.date_input("Fecha de corte / liquidación:", value=date(2026, 11, 25))
-                motivo_ret = st.text_input("Nota de retiro (opcional):", placeholder="Ej. Fin de reemplazo o retiro voluntario")
+                st.text_input("Nota de retiro (opcional):", placeholder="Ej. Fin de reemplazo o retiro voluntario")
 
                 if st.form_submit_button("🔒 Marcar como Liquidado / Retirado", use_container_width=True):
                     idx = st.session_state.personal[
@@ -703,10 +679,8 @@ with tab3:
     st.markdown("**Base Maestra Actualizada (Activos e Históricos):**")
     st.dataframe(st.session_state.personal, use_container_width=True, hide_index=True)
 
-# ------------------------------------------------------------------------------
-# TAB 4: MATRIZ AUTÓNOMA DE TARIFAS POR SEDE Y VEHÍCULO
-# ------------------------------------------------------------------------------
-with tab4:
+
+def render_modulo_tarifas():
     st.subheader("💲 Matriz Autónoma de Tarifas (100% Administrable por SERGEM)")
     st.caption(
         "Si cambia una tarifa, sube el valor de hora extra o abren un nuevo municipio, "
@@ -727,3 +701,101 @@ with tab4:
         key="editor_tarifas",
     )
     st.session_state.tarifas = tarifas_editadas
+
+
+# ==============================================================================
+# BARRA LATERAL (SELECTOR INTERACTIVO DE VISTAS POR PERFIL)
+# ==============================================================================
+with st.sidebar:
+    st.markdown("### 🏢 SERGEM — Cañaveral")
+    rol_activo = st.radio(
+        "Simular vista de usuario:",
+        [
+            "👩‍💼 Facturación / Gerencia SERGEM",
+            "👨‍💼 Auditoría Cañaveral (Sr. Fabián)",
+            "📱 Supervisor Operativo (Celular)",
+        ],
+    )
+    st.divider()
+    st.markdown("**Ventajas clave del sistema:**")
+    st.success(
+        "✅ **Cero carga para Cañaveral:** No digitan nada; reciben el Excel exacto y revisan glosas."
+    )
+    st.info(
+        "🔄 **Rotación sin listas fijas:** Altas y retiros diarios sin alterar quincenas pasadas."
+    )
+    st.warning(
+        "⚡ **Cierre en 1 clic:** Días separados por comas (1,2,3...) y horas extras decimales."
+    )
+    st.caption("Prototipo funcional desarrollado por **Gestión Logik**")
+
+
+# ==============================================================================
+# BANNER PRINCIPAL Y ENRUTAMIENTO DINÁMICO SEGÚN PERFIL SELECCIONADO
+# ==============================================================================
+st.markdown(
+    """
+    <div class="main-banner">
+        <h1>🚚 Plataforma Integral de Prefacturación, Rotación y Auditoría — SERGEM & Cañaveral</h1>
+        <p>Control operativo diario en tiempo real, liquidación automática por sede/vehículo y conciliación quincenal sin reprocesos.</p>
+        <div>
+            <span class="badge-pill">📍 7 Municipios Activos</span>
+            <span class="badge-pill">🏍️ Moto • Camioneta • Chopper</span>
+            <span class="badge-pill">📅 Cortes 01-15 y 16-31</span>
+            <span class="badge-pill">🔒 Trazabilidad de Glosas</span>
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+if rol_activo == "👩‍💼 Facturación / Gerencia SERGEM":
+    st.markdown(
+        '<div class="role-strip">👩‍💼 <b>Perfil Activo: Facturación y Gerencia SERGEM</b> — Acceso total a prefacturación, novedades diarias, rotación de personal y matriz de tarifas.</div>',
+        unsafe_allow_html=True,
+    )
+    render_kpis()
+    st.write("")
+    tab1, tab2, tab3, tab4 = st.tabs(
+        [
+            "📊 1. Prefactura y Control de Glosas",
+            "📱 2. Registro Diario (Vista Celular)",
+            "👥 3. Maestro Dinámico de Personal",
+            "💲 4. Matriz Autónoma de Tarifas",
+        ]
+    )
+    with tab1:
+        render_modulo_prefactura(modo_auditor=False)
+    with tab2:
+        render_modulo_registro_diario(modo_movil=False)
+    with tab3:
+        render_modulo_personal()
+    with tab4:
+        render_modulo_tarifas()
+
+elif rol_activo == "👨‍💼 Auditoría Cañaveral (Sr. Fabián)":
+    st.markdown(
+        '<div class="role-strip">👨‍💼 <b>Perfil Activo: Auditoría Cañaveral (Sr. Fabián)</b> — Vista enfocada en revisión quincenal, registro de observaciones, aprobación de factura y consulta de respaldo diario.</div>',
+        unsafe_allow_html=True,
+    )
+    render_kpis()
+    st.write("")
+    tab_aud1, tab_aud2 = st.tabs(
+        [
+            "📊 1. Revisión de Prefactura y Autorización",
+            "📋 2. Respaldo Diario de Asistencia (Solo Lectura)",
+        ]
+    )
+    with tab_aud1:
+        render_modulo_prefactura(modo_auditor=True)
+    with tab_aud2:
+        st.subheader("📋 Bitácora Diaria de Operación (Respaldo de Auditoría)")
+        st.caption("Consulta en tiempo real los soportes diarios cargados por SERGEM sin necesidad de digitar información.")
+        st.dataframe(st.session_state.registros_diarios, use_container_width=True, hide_index=True)
+
+else:
+    st.markdown(
+        '<div class="role-strip">📱 <b>Perfil Activo: Supervisor Operativo (Celular)</b> — Interfaz rápida de campo para reportar asistencia y novedades diarias (sin exposición de tarifas ni facturación).</div>',
+        unsafe_allow_html=True,
+    )
+    render_modulo_registro_diario(modo_movil=True)
