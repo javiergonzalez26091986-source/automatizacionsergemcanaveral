@@ -9,7 +9,9 @@ from openpyxl.utils import get_column_letter
 # 1. ZONA DE DATOS MAESTROS (Reemplazar aquí con la base real de SERGEM)
 # ==============================================================================
 
-# Festivos oficiales en Colombia (2026 - ampliar con 2027 al cierre de año)
+SCHEMA_VERSION = "v2.2_pin_horarios"
+
+# Festivos oficiales en Colombia (2026)
 FESTIVOS_COLOMBIA = {
     "2026-01-01", "2026-01-12", "2026-03-23", "2026-04-02", "2026-04-03",
     "2026-05-01", "2026-05-18", "2026-06-08", "2026-06-15", "2026-06-29",
@@ -17,7 +19,7 @@ FESTIVOS_COLOMBIA = {
     "2026-11-16", "2026-12-08", "2026-12-25",
 }
 
-# Credenciales administrativas y de supervisión (puedes cambiarlas aquí)
+# Credenciales administrativas y de supervisión
 CREDENCIALES_ADMIN = {
     "admin_sergem": {"usuario": "admin", "clave": "sergem2026", "nombre": "Administración SERGEM"},
     "encargado_punto": {"usuario": "supervisor", "clave": "punto2026", "nombre": "Encargado de Punto"},
@@ -112,14 +114,6 @@ st.markdown(
         margin-right: 6px;
         margin-top: 8px;
     }
-    .login-card {
-        background-color: #FFFFFF;
-        border: 1px solid #CBD5E0;
-        border-top: 5px solid #0F2942;
-        border-radius: 14px;
-        padding: 1.8rem;
-        box-shadow: 0 8px 24px rgba(15, 41, 66, 0.08);
-    }
     .role-strip {
         background-color: #EBF8FF;
         border-left: 4px solid #2B6CB0;
@@ -170,8 +164,30 @@ st.markdown(
     .stTabs [aria-selected="true"] p {
         color: #FFFFFF !important;
     }
-    button[kind="primary"] p {
+
+    /* CORRECCIÓN DE LEGIBILIDAD EN TODOS LOS BOTONES (Formulario, Primarios y Descarga) */
+    div[data-testid="stFormSubmitButton"] button,
+    div[data-testid="stDownloadButton"] button,
+    button[kind="primary"],
+    button[data-testid="baseButton-primary"],
+    button[data-testid="baseButton-primaryFormSubmit"] {
+        background-color: #0F2942 !important;
+        border: 1px solid #0F2942 !important;
         color: #FFFFFF !important;
+    }
+    div[data-testid="stFormSubmitButton"] button *,
+    div[data-testid="stDownloadButton"] button *,
+    button[kind="primary"] *,
+    button[data-testid="baseButton-primary"] *,
+    button[data-testid="baseButton-primaryFormSubmit"] * {
+        color: #FFFFFF !important;
+        font-weight: 600 !important;
+    }
+    div[data-testid="stFormSubmitButton"] button:hover,
+    div[data-testid="stDownloadButton"] button:hover,
+    button[kind="primary"]:hover {
+        background-color: #1E4E79 !important;
+        border-color: #1E4E79 !important;
     }
     </style>
     """,
@@ -190,13 +206,6 @@ def calcular_jornada_automatica(
     h_salida: time,
     jornada_base: float = 8.0,
 ) -> dict:
-    """
-    Calcula automáticamente:
-    - Horas netas descontando almuerzo
-    - Horas extras exactas en decimales
-    - Día de la semana en español (Lunes a Domingo)
-    - Detección automática de Domingo o Festivo en Colombia
-    """
     dt_ing = datetime.combine(fecha_op, h_ingreso)
     dt_sal_alm = datetime.combine(fecha_op, h_sal_almuerzo)
     dt_reg_alm = datetime.combine(fecha_op, h_reg_almuerzo)
@@ -235,6 +244,13 @@ def obtener_quincena_label(fecha_str: str) -> str:
 
 
 def init_state():
+    # Si la sesión viene de una versión anterior sin columna PIN, reinicia limpiamente
+    if st.session_state.get("schema_version") != SCHEMA_VERSION:
+        for k in ["auth", "jornada_base", "tarifas", "personal", "registros_diarios", "prefactura_q1"]:
+            if k in st.session_state:
+                del st.session_state[k]
+        st.session_state.schema_version = SCHEMA_VERSION
+
     if "auth" not in st.session_state:
         st.session_state.auth = {"autenticado": False, "rol": None, "nombre": None, "cedula": None}
 
@@ -244,11 +260,10 @@ def init_state():
     if "tarifas" not in st.session_state:
         st.session_state.tarifas = pd.DataFrame(DATOS_INICIALES_TARIFAS)
 
-    if "personal" not in st.session_state:
+    if "personal" not in st.session_state or "PIN" not in st.session_state.personal.columns:
         st.session_state.personal = pd.DataFrame(DATOS_INICIALES_PERSONAL)
 
     if "registros_diarios" not in st.session_state:
-        # Registros diarios de ejemplo (incluye pendientes por validar y aprobados)
         st.session_state.registros_diarios = pd.DataFrame(
             [
                 {
@@ -555,7 +570,6 @@ init_state()
 
 
 def consolidar_desde_registros_aprobados():
-    """Cruza las marcaciones aprobadas con la matriz de tarifas para generar líneas de prefactura."""
     df_reg = st.session_state.registros_diarios
     aprobados = df_reg[df_reg["Validación"] == "Aprobado"].copy()
     if aprobados.empty:
@@ -577,11 +591,9 @@ def consolidar_desde_registros_aprobados():
         dias_ord = cant_dias - dias_df
         horas_df = round(grupo["Horas Dom/Fest"].sum(), 2)
 
-        # Buscar modalidad de vinculación
         match_p = df_pers[df_pers["Cédula"] == cedula]
         vinculacion = match_p.iloc[0]["Vinculación"] if not match_p.empty else "Fijo / Planta"
 
-        # Buscar tarifa vigente
         match_t = df_tarifas[(df_tarifas["Sede"] == sede) & (df_tarifas["Vehículo"] == vehiculo)]
         if not match_t.empty:
             t_dia = float(match_t.iloc[0]["Tarifa Día ($)"])
@@ -732,6 +744,10 @@ def render_login():
                 pin_in = st.text_input("PIN / Contraseña personal:", type="password", placeholder="4 dígitos")
                 if st.form_submit_button("Ingresar a mi Turno", use_container_width=True, type="primary"):
                     df_p = st.session_state.personal
+                    if "PIN" not in df_p.columns:
+                        st.session_state.personal = pd.DataFrame(DATOS_INICIALES_PERSONAL)
+                        df_p = st.session_state.personal
+
                     ced_limpia = cedula_in.replace(".", "").strip()
                     match = df_p[
                         (df_p["Cédula"].astype(str).str.replace(".", "", regex=False) == ced_limpia)
@@ -816,7 +832,6 @@ def render_vista_trabajador():
         h_reg_alm = c3.time_input("3. Regreso de Almuerzo:", value=time(13, 0))
         h_sal = c4.time_input("4. Salida de Turno:", value=time(17, 30))
 
-        # Vista previa automática antes de guardar
         calc = calcular_jornada_automatica(
             fecha_op, h_ing, h_sal_alm, h_reg_alm, h_sal, st.session_state.jornada_base
         )
@@ -1112,7 +1127,7 @@ def render_tab_personal():
                 fecha_corte_ret = st.date_input("Fecha de corte / liquidación:", value=date(2026, 11, 25))
                 st.text_input("Motivo de retiro (opcional):", placeholder="Ej. Fin de reemplazo")
 
-                if st.form_submit_button("🔒 Marcar como Liquidado / Retirado", use_container_width=True):
+                if st.form_submit_button("🔒 Marcar como Liquidado / Retirado", use_container_width=True, type="primary"):
                     idx = st.session_state.personal[
                         st.session_state.personal["Nombre Completo"] == persona_ret
                     ].index
